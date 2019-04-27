@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Animal Giphy Search</title>
+</head>
+
+<body>
+
+
+  <div id="buttons-view"></div>
+
+    <form id="animal-form">
+      <label for="animal-input">Add an animal, Yo!</label>
+      <input type="text" id="animal-input"><br>
+
+      <!-- Button triggers new  to be added -->
+      <input id="add-animal" type="submit" value="Add an animal, Yo!">
+    </form>
+
+
+  <div id="gifs-appear-here">
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript">
+
+
+
+var animals = ["goat"];
+
+      // Function for displaying movie data
+      function renderButtons() {
+
+        // Deleting the animal buttons prior to adding new animal buttons
+        // (this is necessary otherwise we will have repeat buttons)
+        $("#buttons-view").empty();
+
+        // Looping through the array of animals
+        for (var i = 0; i < animals.length; i++) {
+
+          // Then dynamically generating buttons for each animal in the array.
+          // This code $("<button>") is all jQuery needs to create the start and end tag. (<button></button>)
+          var a = $("<button>");
+          // Adding a class
+          a.addClass("animal");
+          // Adding a data-attribute with a value of the animalgif at index i
+          a.attr("data-name", animals[i]);
+          // Providing the button's text with a value of the animalgif at index i
+          a.text(animals[i]);
+          // Adding the button to the HTML
+          $("#buttons-view").append(a);
+        }
+      }
+
+      // This function handles events where one button is clicked
+      $("#add-animal").on("click", function(event) {
+        // event.preventDefault() prevents the form from trying to submit itself.
+        // We're using a form so that the user can hit enter instead of clicking the button if they want
+        event.preventDefault();
+
+        // This line will grab the text from the input box
+        var animal = $("#animal-input").val().trim();
+        // The animal from the textbox is then added to our array
+        animals.push(animal);
+
+        // calling renderButtons which handles the processing of our animals array
+        renderButtons();
+      });
+
+      // Calling the renderButtons function at least once to display the initial list of 
+      renderButtons();
+
+
+    // Event listener for all button elements
+    $("button").on("click", function() {
+      // In this case, the "this" keyword refers to the button that was clicked
+      var animal = $(this).attr("data-animal");
+
+      // Constructing a URL to search Giphy for the animal
+      var queryURL = "https://api.giphy.com/v1/gifs/search?q=" +
+        animals + "&api_key=NznNk593yPiJUgAzNi9BWzeNBgQyAxVu&limit=10";
+
+      // Performing our AJAX GET request
+      $.ajax({
+        url: queryURL,
+        method: "GET"
+      })
+        // After the data comes back from the API
+        .then(function(response) {
+          // Storing an array of results in the results variable
+          var results = response.data;
+
+          // Looping over every result item
+          for (var i = 0; i < results.length; i++) {
+
+            // Only taking action if the photo has an appropriate rating
+            if (results[i].rating !== "r" && results[i].rating !== "pg-13") {
+              // Creating a div for the gif
+              var gifDiv = $("<div>");
+
+              // Storing the result item's rating
+              var rating = results[i].rating;
+
+              // Creating a paragraph tag with the result item's rating
+              var p = $("<p>").text("Rating: " + rating);
+
+              // Creating an image tag
+              var animalImage = $("<img>");
+
+              // Giving the image tag an src attribute of a property pulled off the
+              // result item
+              animalImage.attr("src", results[i].images.fixed_height.url);
+
+              // Appending the paragraph and animalImage we created to the "gifDiv" div we created
+              gifDiv.append(p);
+              gifDiv.append(animalImage);
+
+              // Prepending the gifDiv to the "#gifs-appear-here" div in the HTML
+              $("#gifs-appear-here").prepend(gifDiv);
+            }
+          }
+        });
+    });
+  </script>
+</body>
+
+</html>
